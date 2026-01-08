@@ -1,0 +1,165 @@
+{% extends 'catalog/base.html' %}
+
+{% block title %}Контакты - Интернет-магазин{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h1 class="mb-4">Контакты</h1>
+        <p class="lead">Мы всегда рады помочь вам! Свяжитесь с нами удобным для вас способом.</p>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="bi bi-geo-alt"></i> Наш адрес</h5>
+            </div>
+            <div class="card-body">
+                <address>
+                    <strong>Главный офис</strong><br>
+                    г. Москва, ул. Примерная, д. 123<br>
+                    Бизнес-центр "Торговый", 5 этаж, офис 501<br>
+                    <br>
+                    <strong>Часы работы:</strong><br>
+                    Пн-Пт: 9:00 - 18:00<br>
+                    Сб: 10:00 - 16:00<br>
+                    Вс: выходной
+                </address>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0"><i class="bi bi-telephone"></i> Телефоны</h5>
+            </div>
+            <div class="card-body">
+                <ul class="list-unstyled">
+                    <li class="mb-2">
+                        <i class="bi bi-phone"></i>
+                        <strong>Телефон:</strong>
+                        <a href="tel:+74951234567">+7 (495) 123-45-67</a>
+                    </li>
+                    <li class="mb-2">
+                        <i class="bi bi-whatsapp"></i>
+                        <strong>WhatsApp:</strong>
+                        <a href="https://wa.me/79161234567">+7 (916) 123-45-67</a>
+                    </li>
+                    <li class="mb-2">
+                        <i class="bi bi-telegram"></i>
+                        <strong>Telegram:</strong>
+                        <a href="https://t.me/onlinestore_support">@onlinestore_support</a>
+                    </li>
+                    <li>
+                        <i class="bi bi-headset"></i>
+                        <strong>Горячая линия:</strong>
+                        <a href="tel:88001234567">8 (800) 123-45-67</a> (бесплатно по России)
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0"><i class="bi bi-envelope"></i> Электронная почта</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <h6>Общие вопросы</h6>
+                        <a href="mailto:info@store-example.ru">info@store-example.ru</a>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <h6>Техническая поддержка</h6>
+                        <a href="mailto:support@store-example.ru">support@store-example.ru</a>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <h6>Сотрудничество</h6>
+                        <a href="mailto:partners@store-example.ru">partners@store-example.ru</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header bg-warning text-dark">
+                <h5 class="mb-0"><i class="bi bi-chat-dots"></i> Форма обратной связи</h5>
+            </div>
+            <div class="card-body">
+                <form>
+                    <div class="mb-3">
+                        <label for="name" class="form-label">Ваше имя</label>
+                        <input type="text" class="form-control" id="name" placeholder="Иван Иванов" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="email" class="form-label">Email адрес</label>
+                        <input type="email" class="form-control" id="email" placeholder="name@example.com" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="phone" class="form-label">Телефон</label>
+                        <input type="tel" class="form-control" id="phone" placeholder="+7 (999) 123-45-67">
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="subject" class="form-label">Тема обращения</label>
+                        <select class="form-select" id="subject">
+                            <option selected>Выберите тему</option>
+                            <option value="order">Вопрос по заказу</option>
+                            <option value="delivery">Доставка</option>
+                            <option value="product">Вопрос о товаре</option>
+                            <option value="other">Другое</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="message" class="form-label">Сообщение</label>
+                        <textarea class="form-control" id="message" rows="5" placeholder="Опишите вашу проблему или вопрос..." required></textarea>
+                    </div>
+
+                    <div class="mb-3 form-check">
+                        <input type="checkbox" class="form-check-input" id="agreement" required>
+                        <label class="form-check-label" for="agreement">
+                            Я согласен на обработку персональных данных
+                        </label>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-send"></i> Отправить сообщение
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <h5><i class="bi bi-map"></i> Мы на карте</h5>
+                <div class="ratio ratio-16x9">
+                    <iframe
+                        src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2245.373374032234!2d37.61763331539179!3d55.75582600000001!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x46b54a50b315e573%3A0xa886bf5a3d9b2e68!2z0JzQvtGB0LrQstCw!5e0!3m2!1sru!2sru!4v1648031560123!5m2!1sru!2sru"
+                        style="border:0;"
+                        allowfullscreen=""
+                        loading="lazy">
+                    </iframe>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
