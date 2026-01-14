@@ -1,22 +1,68 @@
-﻿<!DOCTYPE html>
-<html lang="ru">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Главная - Интернет-магазин</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-</head>
-<body>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-        <div class="container">
-            <a class="navbar-brand" href="/">Интернет-магазин</a>
-        </div>
-    </nav>
+﻿{% extends "catalog/base.html" %}
+
+{% block title %}Главная - Интернет-магазин{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1 class="mb-4">Добро пожаловать в наш интернет-магазин!</h1>
     
-    <div class="container mt-4">
-        <h1>Добро пожаловать в наш интернет-магазин!</h1>
-        <p>Здесь вы найдете лучшие товары по выгодным ценам.</p>
-        <a href="/contacts/" class="btn btn-primary">Контакты</a>
+    <div class="alert alert-info" role="alert">
+        <h4 class="alert-heading">Специальное предложение!</h4>
+        <p>Скидка 15% на первый заказ. Используйте промокод: <strong>WELCOME15</strong></p>
     </div>
-</body>
-</html>
+
+    <!-- Каталог товаров -->
+    <div class="row mt-5">
+        <div class="col-12">
+            <h2 class="mb-4">Наши товары</h2>
+            
+            {% if products %}
+            <div class="row row-cols-1 row-cols-md-3 g-4">
+                {% for product in products %}
+                <div class="col">
+                    <div class="card h-100 shadow-sm">
+                        {% if product.image %}
+                        <img src="{{ product.image.url }}" class="card-img-top" alt="{{ product.name }}" style="height: 200px; object-fit: cover;">
+                        {% else %}
+                        <div class="bg-light d-flex align-items-center justify-content-center" style="height: 200px;">
+                            <span class="text-muted">Нет изображения</span>
+                        </div>
+                        {% endif %}
+                        
+                        <div class="card-body">
+                            <h5 class="card-title">{{ product.name }}</h5>
+                            <h6 class="text-success">{{ product.price }} ₽</h6>
+                            
+                            <p class="card-text">
+                                {% if product.description|length > 100 %}
+                                    {{ product.description|slice:":100" }}...
+                                {% else %}
+                                    {{ product.description }}
+                                {% endif %}
+                            </p>
+                            
+                            <div class="mt-3">
+                                <span class="badge bg-secondary">{{ product.category.name }}</span>
+                            </div>
+                        </div>
+                        
+                        <div class="card-footer bg-white border-top-0">
+                            <div class="d-grid">
+                                <a href="{% url 'product_detail' product.pk %}" class="btn btn-outline-primary">
+                                    <i class="bi bi-eye"></i> Подробнее
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="alert alert-warning" role="alert">
+                Товары временно отсутствуют. Зайдите позже!
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

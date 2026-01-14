@@ -1,0 +1,62 @@
+﻿{% extends "catalog/base.html" %}
+
+{% block title %}Контакты - Интернет-магазин{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h1 class="mb-4">Контакты</h1>
+        <p class="lead">Мы всегда рады помочь вам! Свяжитесь с нами удобным для вас способом.</p>
+    </div>
+</div>
+
+<!-- Ваш существующий код контактов -->
+<div class="row mt-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="bi bi-geo-alt"></i> Наш адрес</h5>
+            </div>
+            <div class="card-body">
+                <address>
+                    <strong>Главный офис</strong><br>
+                    г. Москва, ул. Примерная, д. 123<br>
+                    Бизнес-центр "Торговый", 5 этаж, офис 501<br>
+                    <br>
+                    <strong>Часы работы:</strong><br>
+                    Пн-Пт: 9:00 - 18:00<br>
+                    Сб: 10:00 - 16:00<br>
+                    Вс: выходной
+                </address>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0"><i class="bi bi-telephone"></i> Телефоны</h5>
+            </div>
+            <div class="card-body">
+                <ul class="list-unstyled">
+                    <li class="mb-2">
+                        <i class="bi bi-phone"></i>
+                        <strong>Телефон:</strong>
+                        <a href="tel:+74951234567">+7 (495) 123-45-67</a>
+                    </li>
+                    <li class="mb-2">
+                        <i class="bi bi-whatsapp"></i>
+                        <strong>WhatsApp:</strong>
+                        <a href="https://wa.me/79161234567">+7 (916) 123-45-67</a>
+                    </li>
+                    <li class="mb-2">
+                        <i class="bi bi-telegram"></i>
+                        <strong>Telegram:</strong>
+                        <a href="https://t.me/onlinestore_support">@onlinestore_support</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

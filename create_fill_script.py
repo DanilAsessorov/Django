@@ -1,4 +1,6 @@
-from django.core.management.base import BaseCommand
+import os
+
+content = '''from django.core.management.base import BaseCommand
 from catalog.models import Category, Product
 import os
 
@@ -58,4 +60,9 @@ class Command(BaseCommand):
             image="products/tshirt.jpg"
         )
 
-        self.stdout.write("Тестовые данные с изображениями созданы!")
+        self.stdout.write("Тестовые данные с изображениями созданы!")'''
+
+with open('catalog/management/commands/fill_test_data.py', 'w', encoding='utf-8') as f:
+    f.write(content)
+
+print('Файл с изображениями создан')
