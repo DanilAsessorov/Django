@@ -1,21 +1,31 @@
-﻿<!-- catalog/templates/catalog/product_detail.html -->
-{% extends 'catalog/base.html' %}
-
-{% block title %}{{ product.name }}{% endblock %}
+﻿{% extends 'catalog/base.html' %}  <!-- Если у вас есть базовый шаблон -->
+{% load static %}
 
 {% block content %}
-<h1>{{ product.name }}</h1>
-<p><strong>Категория:</strong> {{ product.category }}</p>
-<p><strong>Описание:</strong> {{ product.description }}</p>
-<p><strong>Цена:</strong> {{ product.price }} ₽</p>
-<p><strong>Дата создания:</strong> {{ product.created_at }}</p>
-<p><strong>Последнее изменение:</strong> {{ product.updated_at }}</p>
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-md-6">
+            {% if product.image %}
+                <img src="{{ product.image.url }}" class="img-fluid" alt="{{ product.name }}">
+            {% else %}
+                <img src="{% static 'images/no_image.png' %}" class="img-fluid" alt="Нет изображения">
+            {% endif %}
+        </div>
+        <div class="col-md-6">
+            <h1>{{ product.name }}</h1>
+            <p class="text-muted">Категория: {{ product.category.name }}</p>
+            <p class="lead">{{ product.description }}</p>
+            <h3 class="text-primary">{{ product.price }} руб.</h3>
+            <p class="text-muted">
+                <small>Добавлен: {{ product.created_at|date:"d.m.Y" }}</small>
+            </p>
 
-{% if product.image %}
-    <img src="{{ product.image.url }}" alt="{{ product.name }}" style="max-width: 300px;">
-{% else %}
-    <p>Нет изображения</p>
-{% endif %}
+            <!-- Кнопка "Добавить в корзину" (заглушка для будущего функционала) -->
+            <button class="btn btn-success btn-lg mt-3">Добавить в корзину</button>
 
-<a href="{% url 'home' %}">← Назад к товарам</a>
+            <!-- Ссылка для возврата к списку товаров -->
+            <a href="{% url 'home' %}" class="btn btn-outline-secondary mt-3 ml-2">Вернуться на главную</a>
+        </div>
+    </div>
+</div>
 {% endblock %}
