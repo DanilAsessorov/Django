@@ -23,7 +23,9 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'catalog',  # аше приложение
+    'catalog',
+    'sorl.thumbnail',
+    'blog',
 ]
 
 MIDDLEWARE = [

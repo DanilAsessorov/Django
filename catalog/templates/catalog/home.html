@@ -1,68 +1,51 @@
-﻿{% extends "catalog/base.html" %}
+﻿{% extends 'catalog/base.html' %}
 
 {% block title %}Главная - Интернет-магазин{% endblock %}
 
 {% block content %}
-<div class="container mt-4">
-    <h1 class="mb-4">Добро пожаловать в наш интернет-магазин!</h1>
-    
-    <div class="alert alert-info" role="alert">
-        <h4 class="alert-heading">Специальное предложение!</h4>
-        <p>Скидка 15% на первый заказ. Используйте промокод: <strong>WELCOME15</strong></p>
+<div class="text-center py-5">
+    <h1 class="display-4 mb-4">Добро пожаловать в наш интернет-магазин! 🛍️</h1>
+    <p class="lead mb-4">Здесь вы найдете лучшие товары по выгодным ценам</p>
+
+    <div class="row mt-5">
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <div class="card-body text-center">
+                    <i class="bi bi-truck display-4 text-primary mb-3"></i>
+                    <h5 class="card-title">Быстрая доставка</h5>
+                    <p class="card-text">Доставка по Москве за 2 часа, по России - от 1 дня.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <div class="card-body text-center">
+                    <i class="bi bi-shield-check display-4 text-success mb-3"></i>
+                    <h5 class="card-title">Гарантия качества</h5>
+                    <p class="card-text">Все товары проходят проверку перед отправкой.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <div class="card-body text-center">
+                    <i class="bi bi-arrow-counterclockwise display-4 text-warning mb-3"></i>
+                    <h5 class="card-title">Легкий возврат</h5>
+                    <p class="card-text">Возврат товара в течение 30 дней без вопросов.</p>
+                </div>
+            </div>
+        </div>
     </div>
 
-    <!-- Каталог товаров -->
-    <div class="row mt-5">
-        <div class="col-12">
-            <h2 class="mb-4">Наши товары</h2>
-            
-            {% if products %}
-            <div class="row row-cols-1 row-cols-md-3 g-4">
-                {% for product in products %}
-                <div class="col">
-                    <div class="card h-100 shadow-sm">
-                        {% if product.image %}
-                        <img src="{{ product.image.url }}" class="card-img-top" alt="{{ product.name }}" style="height: 200px; object-fit: cover;">
-                        {% else %}
-                        <div class="bg-light d-flex align-items-center justify-content-center" style="height: 200px;">
-                            <span class="text-muted">Нет изображения</span>
-                        </div>
-                        {% endif %}
-                        
-                        <div class="card-body">
-                            <h5 class="card-title">{{ product.name }}</h5>
-                            <h6 class="text-success">{{ product.price }} ₽</h6>
-                            
-                            <p class="card-text">
-                                {% if product.description|length > 100 %}
-                                    {{ product.description|slice:":100" }}...
-                                {% else %}
-                                    {{ product.description }}
-                                {% endif %}
-                            </p>
-                            
-                            <div class="mt-3">
-                                <span class="badge bg-secondary">{{ product.category.name }}</span>
-                            </div>
-                        </div>
-                        
-                        <div class="card-footer bg-white border-top-0">
-                            <div class="d-grid">
-                                <a href="{% url 'product_detail' product.pk %}" class="btn btn-outline-primary">
-                                    <i class="bi bi-eye"></i> Подробнее
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                {% endfor %}
-            </div>
-            {% else %}
-            <div class="alert alert-warning" role="alert">
-                Товары временно отсутствуют. Зайдите позже!
-            </div>
-            {% endif %}
-        </div>
+    <div class="mt-5">
+        <a href="{% url 'blog:post_list' %}" class="btn btn-primary btn-lg me-3">
+            <i class="bi bi-journal-text"></i> Читать наш блог
+        </a>
+        <a href="{% url 'contacts' %}" class="btn btn-outline-primary btn-lg">
+            <i class="bi bi-telephone"></i> Связаться с нами
+        </a>
     </div>
 </div>
 {% endblock %}
