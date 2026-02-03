@@ -1,0 +1,28 @@
+[
+  {
+    "model": "catalog.product",
+    "pk": 1,
+    "fields": {
+      "name": "Смартфон Samsung Galaxy S23",
+      "description": "Флагманский смартфон",
+      "image": "products/smartphone.jpg",
+      "category": 1,
+      "price": "79999.99",
+      "created_at": "2024-01-13T10:00:00Z",
+      "updated_at": "2024-01-13T10:00:00Z"
+    }
+  },
+  {
+    "model": "catalog.product",
+    "pk": 2,
+    "fields": {
+      "name": "Ноутбук ASUS ROG",
+      "description": "Игровой ноутбук",
+      "image": "products/laptop.jpg",
+      "category": 1,
+      "price": "129999.99",
+      "created_at": "2024-01-13T10:00:00Z",
+      "updated_at": "2024-01-13T10:00:00Z"
+    }
+  }
+]
