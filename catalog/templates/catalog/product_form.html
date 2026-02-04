@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>
+        {% if object %}Редактирование {{ object.name }}{% else %}Создание нового продукта{% endif %}
+    </title>
+    <style>
+        .form-container {
+            max-width: 700px;
+            margin: 40px auto;
+            padding: 30px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        .form-group { margin-bottom: 20px; }
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #333;
+        }
+        .form-control {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+        .form-control:focus {
+            border-color: #80bdff;
+            outline: 0;
+            box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25);
+        }
+        .error-message {
+            color: #dc3545;
+            font-size: 14px;
+            margin-top: 5px;
+        }
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        .btn-primary {
+            background: #007bff;
+            color: white;
+        }
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+            margin-left: 10px;
+        }
+        .btn:hover { opacity: 0.9; }
+    </style>
+</head>
+<body>
+    <div class="form-container">
+        <h1>{% if object %}Редактирование продукта{% else %}Создание нового продукта{% endif %}</h1>
+
+        {% if form.errors %}
+        <div class="error-message" style="background: #f8d7da; padding: 10px; border-radius: 4px; margin-bottom: 20px;">
+            <strong>Пожалуйста, исправьте ошибки в форме:</strong>
+            <ul>
+                {% for field, errors in form.errors.items %}
+                    {% for error in errors %}
+                    <li>{{ field }}: {{ error }}</li>
+                    {% endfor %}
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+
+            <!-- Название -->
+            <div class="form-group">
+                <label class="form-label" for="id_name">Название продукта *</label>
+                <input type="text"
+                       name="name"
+                       id="id_name"
+                       value="{% if form.name.value %}{{ form.name.value }}{% endif %}"
+                       class="form-control"
+                       required>
+                {% if form.name.errors %}
+                <div class="error-message">
+                    {% for error in form.name.errors %}
+                    <p>{{ error }}</p>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Описание -->
+            <div class="form-group">
+                <label class="form-label" for="id_description">Описание</label>
+                <textarea name="description"
+                          id="id_description"
+                          rows="4"
+                          class="form-control">{% if form.description.value %}{{ form.description.value }}{% endif %}</textarea>
+                {% if form.description.errors %}
+                <div class="error-message">
+                    {% for error in form.description.errors %}
+                    <p>{{ error }}</p>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Изображение -->
+            <div class="form-group">
+                <label class="form-label" for="id_image">Изображение</label>
+
+                {% if object and object.image %}
+                <div style="margin-bottom: 15px;">
+                    <p>Текущее изображение:</p>
+                    <img src="{{ object.image.url }}" alt="{{ object.name }}" style="max-width: 200px; border-radius: 4px;">
+                    <div style="margin-top: 10px;">
+                        <input type="checkbox" name="image-clear" id="image-clear_id">
+                        <label for="image-clear_id">Удалить текущее изображение</label>
+                    </div>
+                </div>
+                {% endif %}
+
+                <input type="file"
+                       name="image"
+                       id="id_image"
+                       class="form-control"
+                       accept="image/*">
+                {% if form.image.errors %}
+                <div class="error-message">
+                    {% for error in form.image.errors %}
+                    <p>{{ error }}</p>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Категория - УПРОЩЕННЫЙ ВАРИАНТ -->
+            <div class="form-group">
+                <label class="form-label" for="id_category">Категория</label>
+                <select name="category" id="id_category" class="form-control">
+                    <option value="">--- Выберите категорию ---</option>
+                    {% for category in categories %}
+                    <option value="{{ category.id }}"
+                        {% if form.category.value %}
+                            {% if form.category.value == category.id %}selected{% endif %}
+                        {% elif object and object.category.id == category.id %}
+                            selected
+                        {% endif %}>
+                        {{ category.name }}
+                    </option>
+                    {% endfor %}
+                </select>
+                {% if form.category.errors %}
+                <div class="error-message">
+                    {% for error in form.category.errors %}
+                    <p>{{ error }}</p>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Цена -->
+            <div class="form-group">
+                <label class="form-label" for="id_price">Цена *</label>
+                <input type="number"
+                       name="price"
+                       id="id_price"
+                       step="0.01"
+                       min="0"
+                       value="{% if form.price.value %}{{ form.price.value }}{% endif %}"
+                       class="form-control"
+                       required>
+                {% if form.price.errors %}
+                <div class="error-message">
+                    {% for error in form.price.errors %}
+                    <p>{{ error }}</p>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Поле is_published -->
+<div class="form-group" style="display: flex; align-items: center;">
+    <input type="checkbox"
+           name="is_published"
+           id="id_is_published"
+           class="form-check-input"
+           {% if form.is_published.value or not form.is_published.value and not object %}checked{% endif %}
+           style="width: auto; margin-right: 10px;">
+    <label for="id_is_published" class="form-label" style="margin-bottom: 0; font-weight: normal;">
+        Опубликовать продукт
+    </label>
+</div>
+{% if form.is_published.errors %}
+<div class="error-message">
+    {% for error in form.is_published.errors %}
+    <p>{{ error }}</p>
+    {% endfor %}
+</div>
+{% endif %}
+<small style="color: #6c757d; display: block; margin-top: -10px; margin-bottom: 15px;">
+    Если снято, продукт не будет отображаться в общем каталоге
+</small>
+
+            <!-- Кнопки -->
+            <div style="margin-top: 30px;">
+                <button type="submit" class="btn btn-primary">
+                    {% if object %}Сохранить изменения{% else %}Создать продукт{% endif %}
+                </button>
+                <a href="{% url 'product_list' %}" class="btn btn-secondary">Отмена</a>
+            </div>
+        </form>
+    </div>
+</body>
+</html>

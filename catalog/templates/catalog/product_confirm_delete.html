@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Удаление продукта</title>
+    <style>
+        .delete-container {
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 30px;
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 0 15px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        .product-info {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 6px;
+            margin: 20px 0;
+        }
+        .btn {
+            padding: 10px 25px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 0 10px;
+        }
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+        .warning {
+            color: #856404;
+            background: #fff3cd;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="delete-container">
+        <h1>Подтверждение удаления</h1>
+
+        <div class="warning">
+            ⚠️ Вы собираетесь удалить продукт. Это действие нельзя отменить!
+        </div>
+
+        <div class="product-info">
+            <h2>{{ object.name }}</h2>
+            <p><strong>Цена:</strong> {{ object.price }} руб.</p>
+            <p><strong>Категория:</strong> {{ object.category.name|default:"Не указана" }}</p>
+            {% if object.description %}
+            <p><strong>Описание:</strong> {{ object.description|truncatechars:100 }}</p>
+            {% endif %}
+        </div>
+
+        <form method="post">
+            {% csrf_token %}
+            <p>Вы уверены, что хотите удалить этот продукт?</p>
+            <button type="submit" class="btn btn-danger">Да, удалить</button>
+            <a href="{% url 'product_detail' object.pk %}" class="btn btn-secondary">Отмена</a>
+        </form>
+    </div>
+</body>
+</html>
