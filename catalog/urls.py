@@ -6,7 +6,8 @@ from .views import (
     ProductListView,
     ProductCreateView,
     ProductUpdateView,
-    ProductDeleteView
+    ProductDeleteView,
+    product_unpublish
 )
 
 urlpatterns = [
@@ -19,4 +20,7 @@ urlpatterns = [
     path('products/<int:pk>/', ProductDetailView.as_view(), name='product_detail'),
     path('products/<int:pk>/update/', ProductUpdateView.as_view(), name='product_update'),
     path('products/<int:pk>/delete/', ProductDeleteView.as_view(), name='product_delete'),
+
+    # Отмена публикации (для модераторов)
+    path('products/<int:pk>/unpublish/', product_unpublish, name='product_unpublish'),
 ]

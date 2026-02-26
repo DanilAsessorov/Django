@@ -15,8 +15,6 @@ class ProductForm(forms.ModelForm):
         widgets = {
             'description': forms.Textarea(attrs={'rows': 4}),
             'image': forms.FileInput(),
-            # Стилизация для checkbox через виджет
-            'is_published': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
         }
         labels = {
             'is_published': 'Опубликовать продукт',
@@ -29,7 +27,7 @@ class ProductForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         # Стилизация всех полей
         for field_name, field in self.fields.items():
-            if field_name != 'is_published':  # Чекбокс стилизуем отдельно
+            if field_name != 'is_published':
                 field.widget.attrs.update({
                     'class': 'form-control',
                     'style': 'margin-bottom: 15px;'
@@ -58,11 +56,9 @@ class ProductForm(forms.ModelForm):
         """Валидация описания на запрещенные слова"""
         description = self.cleaned_data.get('description', '')
 
-        # Если описание не указано - пропускаем проверку
         if not description:
             return description
 
-        # Приводим к нижнему регистру для проверки
         description_lower = description.lower()
 
         for word in FORBIDDEN_WORDS:
