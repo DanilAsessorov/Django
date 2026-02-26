@@ -3,10 +3,10 @@ from .views import (
     HomeView,
     ContactsView,
     ProductDetailView,
+    ProductListView,
     ProductCreateView,
     ProductUpdateView,
-    ProductDeleteView,
-    ProductListView
+    ProductDeleteView
 )
 
 urlpatterns = [

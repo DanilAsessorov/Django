@@ -18,6 +18,19 @@
             </div>
         </div>
 
+
+    <!-- В шапке сайта -->
+<div style="position: absolute; top: 20px; right: 20px;">
+    {% if user.is_authenticated %}
+        <span>Привет, {{ user.email }}!</span>
+        <a href="{% url 'profile' %}">Профиль</a> |
+        <a href="{% url 'logout' %}">Выйти</a>
+    {% else %}
+        <a href="{% url 'login' %}">Вход</a> |
+        <a href="{% url 'register' %}">Регистрация</a>
+    {% endif %}
+</div>
+
         <div class="col-md-4 mb-4">
             <div class="card h-100">
                 <div class="card-body text-center">
