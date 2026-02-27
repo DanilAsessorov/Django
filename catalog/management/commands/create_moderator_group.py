@@ -5,40 +5,53 @@ from catalog.models import Product
 
 
 class Command(BaseCommand):
-    help = 'Создает группу модераторов с необходимыми правами'
+    help = 'Создание групп и назначение прав для модераторов'
 
     def handle(self, *args, **options):
-        self.stdout.write(self.style.SUCCESS('=' * 50))
-        self.stdout.write(self.style.SUCCESS('НАСТРОЙКА ГРУППЫ МОДЕРАТОРОВ'))
-        self.stdout.write(self.style.SUCCESS('=' * 50))
+        self.stdout.write(self.style.NOTICE('Начало создания групп...'))
 
-        # Создаем группу
+        # Создание группы модераторов
         moderator_group, created = Group.objects.get_or_create(name='Модератор продуктов')
 
         if created:
-            self.stdout.write(self.style.SUCCESS('✅ Группа "Модератор продуктов" создана'))
+            self.stdout.write(self.style.SUCCESS('✓ Группа "Модератор продуктов" создана'))
         else:
-            self.stdout.write(self.style.WARNING('⚠️ Группа "Модератор продуктов" уже существует'))
+            self.stdout.write('ℹ Группа "Модератор продуктов" уже существует')
 
-        # Получаем content type для модели Product
+        # Получение прав для продукта
         content_type = ContentType.objects.get_for_model(Product)
 
-        # Получаем необходимые разрешения
-        permissions = Permission.objects.filter(
+        # Право на отмену публикации (кастомное)
+        can_unpublish, unpublish_created = Permission.objects.get_or_create(
+            codename='can_unpublish_product',
+            name='Может отменять публикацию продукта',
             content_type=content_type,
-            codename__in=['can_unpublish_product', 'delete_product']
         )
 
-        # Добавляем разрешения группе
+        if unpublish_created:
+            self.stdout.write(self.style.SUCCESS('✓ Право "can_unpublish_product" создано'))
+        else:
+            self.stdout.write('ℹ Право "can_unpublish_product" уже существует')
+
+        # Право на удаление продукта (стандартное)
+        try:
+            can_delete = Permission.objects.get(
+                codename='delete_product',
+                content_type=content_type,
+            )
+            self.stdout.write('ℹ Право "delete_product" найдено')
+        except Permission.DoesNotExist:
+            self.stdout.write(self.style.ERROR('✗ Право "delete_product" не найдено!'))
+            return
+
+        # Назначение прав группе
+        moderator_group.permissions.add(can_unpublish, can_delete)
+        self.stdout.write(self.style.SUCCESS('✓ Права назначены группе модераторов'))
+
+        # Проверка назначенных прав
+        permissions = moderator_group.permissions.all()
+        self.stdout.write(self.style.NOTICE('\nНазначенные права:'))
         for perm in permissions:
-            moderator_group.permissions.add(perm)
-            self.stdout.write(self.style.SUCCESS(f'  ✅ Добавлено право: {perm.name}'))
+            self.stdout.write(f'  - {perm.name} ({perm.codename})')
 
-        # Проверяем результат
-        group_perms = moderator_group.permissions.all()
-        self.stdout.write(self.style.SUCCESS('-' * 50))
-        self.stdout.write(self.style.SUCCESS(f'Итого прав у группы: {group_perms.count()}'))
-
-        self.stdout.write(self.style.SUCCESS('=' * 50))
-        self.stdout.write(self.style.SUCCESS('✅ Группа модераторов настроена успешно!'))
-        self.stdout.write(self.style.SUCCESS('=' * 50))
+        self.stdout.write(self.style.SUCCESS('\n✓ Группы успешно созданы и настроены!'))

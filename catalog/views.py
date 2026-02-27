@@ -1,74 +1,46 @@
 ﻿from django.views.generic import TemplateView, DetailView, ListView, CreateView, UpdateView, DeleteView
 from django.urls import reverse_lazy
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
-from django.contrib.auth.decorators import login_required, permission_required
-from django.shortcuts import get_object_or_404, redirect
-from django.contrib import messages
 from django.core.exceptions import PermissionDenied
+from django.contrib import messages
 from .models import Product, Category
 from .forms import ProductForm
 
 
-# ============================================
-# МИКСИНЫ ДЛЯ ПРОВЕРКИ ПРАВ
-# ============================================
-
-class ModeratorRequiredMixin(UserPassesTestMixin):
-    """Проверка, что пользователь является модератором"""
-
-    def test_func(self):
-        return self.request.user.groups.filter(name='Модератор продуктов').exists() or self.request.user.is_superuser
-
-    def handle_no_permission(self):
-        if self.request.user.is_authenticated:
-            messages.error(self.request, 'У вас нет прав модератора для этого действия')
-            return redirect('product_list')
-        return super().handle_no_permission()
-
-
-class OwnerOrModeratorMixin(UserPassesTestMixin):
-    """Проверка, что пользователь - владелец или модератор"""
-
-    def test_func(self):
-        product = self.get_object()
-        is_owner = product.owner == self.request.user
-        is_moderator = self.request.user.groups.filter(
-            name='Модератор продуктов').exists() or self.request.user.is_superuser
-        return is_owner or is_moderator
-
-    def handle_no_permission(self):
-        if self.request.user.is_authenticated:
-            messages.error(self.request, 'У вас нет прав для этого действия')
-            return redirect('product_detail', pk=self.get_object().pk)
-        return super().handle_no_permission()
-
-
-# ============================================
-# ПУБЛИЧНЫЕ СТРАНИЦЫ
-# ============================================
-
+# Главная страница и контакты
 class HomeView(TemplateView):
-    """Контроллер для главной страницы"""
+    """Контроллер для главной страницы (CBV)"""
     template_name = 'catalog/home.html'
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        # Дополнительные данные на главную
         context['products'] = Product.objects.filter(is_published=True)[:5]
         return context
 
 
 class ContactsView(TemplateView):
-    """Контроллер для страницы контактов"""
+    """Контроллер для страницы контактов (CBV)"""
     template_name = 'catalog/contacts.html'
 
 
+# Детальная страница продукта
 class ProductDetailView(DetailView):
-    """Детальная страница продукта"""
+    """Контроллер для страницы детального просмотра товара"""
     model = Product
     template_name = 'catalog/product_detail.html'
     context_object_name = 'product'
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        # Проверка прав для отображения кнопок
+        context['can_edit'] = self.request.user == self.object.owner
+        context['can_delete'] = (self.request.user == self.object.owner or
+                                 self.request.user.has_perm('catalog.can_unpublish_product'))
+        return context
 
+
+# CRUD операции для продуктов
 class ProductListView(ListView):
     """Список всех опубликованных продуктов"""
     model = Product
@@ -80,19 +52,15 @@ class ProductListView(ListView):
         return Product.objects.filter(is_published=True).order_by('name')
 
 
-# ============================================
-# CRUD ОПЕРАЦИИ (ТОЛЬКО ДЛЯ АВТОРИЗОВАННЫХ)
-# ============================================
-
 class ProductCreateView(LoginRequiredMixin, CreateView):
-    """Создание продукта - доступно только авторизованным"""
+    """Создание нового продукта (только для авторизованных)"""
     model = Product
     form_class = ProductForm
     template_name = 'catalog/product_form.html'
     success_url = reverse_lazy('product_list')
 
     def form_valid(self, form):
-        # Автоматически назначаем владельца
+        """При создании автоматически назначаем владельца"""
         form.instance.owner = self.request.user
         messages.success(self.request, 'Продукт успешно создан!')
         return super().form_valid(form)
@@ -100,56 +68,62 @@ class ProductCreateView(LoginRequiredMixin, CreateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['categories'] = Category.objects.all()
+        context['title'] = 'Создание продукта'
         return context
 
 
-class ProductUpdateView(LoginRequiredMixin, OwnerOrModeratorMixin, UpdateView):
-    """Редактирование продукта - только владелец"""
+class ProductUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
+    """Редактирование продукта (только владелец)"""
     model = Product
     form_class = ProductForm
     template_name = 'catalog/product_form.html'
 
-    def get_success_url(self):
+    def test_func(self):
+        """Проверка прав на редактирование"""
+        product = self.get_object()
+        return self.request.user == product.owner
+
+    def handle_no_permission(self):
+        """Если нет прав"""
+        messages.error(self.request, 'У вас нет прав для редактирования этого продукта')
+        raise PermissionDenied("У вас нет прав для редактирования этого продукта")
+
+    def form_valid(self, form):
         messages.success(self.request, 'Продукт успешно обновлен!')
+        return super().form_valid(form)
+
+    def get_success_url(self):
         return reverse_lazy('product_detail', kwargs={'pk': self.object.pk})
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['categories'] = Category.objects.all()
+        context['title'] = f'Редактирование: {self.object.name}'
         return context
 
 
-class ProductDeleteView(LoginRequiredMixin, OwnerOrModeratorMixin, DeleteView):
-    """Удаление продукта - только владелец или модератор"""
+class ProductDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
+    """Удаление продукта (владелец или модератор)"""
     model = Product
     template_name = 'catalog/product_confirm_delete.html'
     success_url = reverse_lazy('product_list')
 
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['title'] = f'Удаление продукта: {self.object.name}'
-        return context
+    def test_func(self):
+        """Проверка прав на удаление"""
+        product = self.get_object()
+        # Владелец ИЛИ модератор с правом can_unpublish_product
+        return (self.request.user == product.owner or
+                self.request.user.has_perm('catalog.can_unpublish_product'))
+
+    def handle_no_permission(self):
+        messages.error(self.request, 'У вас нет прав для удаления этого продукта')
+        raise PermissionDenied("У вас нет прав для удаления этого продукта")
 
     def delete(self, request, *args, **kwargs):
         messages.success(self.request, 'Продукт успешно удален!')
         return super().delete(request, *args, **kwargs)
 
-
-# ============================================
-# ФУНКЦИЯ ДЛЯ ОТМЕНЫ ПУБЛИКАЦИИ (ТОЛЬКО МОДЕРАТОРЫ)
-# ============================================
-
-@login_required
-@permission_required('catalog.can_unpublish_product', raise_exception=True)
-def product_unpublish(request, pk):
-    """Отмена публикации продукта (доступно только модераторам)"""
-    product = get_object_or_404(Product, pk=pk)
-
-    if product.is_published:
-        product.is_published = False
-        product.save()
-        messages.success(request, f'Продукт "{product.name}" снят с публикации')
-    else:
-        messages.warning(request, f'Продукт "{product.name}" уже не опубликован')
-
-    return redirect('product_detail', pk=pk)
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = f'Удаление продукта: {self.object.name}'
+        return context

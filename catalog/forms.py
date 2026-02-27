@@ -15,6 +15,7 @@ class ProductForm(forms.ModelForm):
         widgets = {
             'description': forms.Textarea(attrs={'rows': 4}),
             'image': forms.FileInput(),
+            'is_published': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
         }
         labels = {
             'is_published': 'Опубликовать продукт',
@@ -27,7 +28,7 @@ class ProductForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         # Стилизация всех полей
         for field_name, field in self.fields.items():
-            if field_name != 'is_published':
+            if field_name != 'is_published':  # Чекбокс стилизуем отдельно
                 field.widget.attrs.update({
                     'class': 'form-control',
                     'style': 'margin-bottom: 15px;'
@@ -42,10 +43,13 @@ class ProductForm(forms.ModelForm):
 
     def clean_name(self):
         """Валидация названия на запрещенные слова"""
-        name = self.cleaned_data.get('name', '').lower()
+        name = self.cleaned_data.get('name', '')
+        if not name:
+            return name
 
+        name_lower = name.lower()
         for word in FORBIDDEN_WORDS:
-            if word in name:
+            if word in name_lower:
                 raise ValidationError(
                     f'Название содержит запрещенное слово: "{word}". '
                     f'Использование слова "{word}" недопустимо.'
@@ -55,19 +59,17 @@ class ProductForm(forms.ModelForm):
     def clean_description(self):
         """Валидация описания на запрещенные слова"""
         description = self.cleaned_data.get('description', '')
-
         if not description:
             return description
 
         description_lower = description.lower()
-
         for word in FORBIDDEN_WORDS:
             if word in description_lower:
                 raise ValidationError(
                     f'Описание содержит запрещенное слово: "{word}". '
                     f'Использование слова "{word}" недопустимо.'
                 )
-        return description
+        return self.cleaned_data['description']
 
     def clean_price(self):
         """Валидация цены (не может быть отрицательной)"""
