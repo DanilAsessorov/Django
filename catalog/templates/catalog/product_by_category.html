@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ title }}</title>
+    <style>
+        body { font-family: Arial, sans-serif; background: #f5f5f5; margin: 0; padding: 20px; }
+        .container { max-width: 1200px; margin: 0 auto; }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        .categories-menu {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .categories-menu a {
+            display: inline-block;
+            padding: 8px 15px;
+            margin: 0 5px 5px 0;
+            background: #e9ecef;
+            color: #495057;
+            text-decoration: none;
+            border-radius: 4px;
+        }
+        .categories-menu a.active {
+            background: #007bff;
+            color: white;
+        }
+        .categories-menu a:hover {
+            background: #0056b3;
+            color: white;
+        }
+        .product-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 25px;
+        }
+        .product-card {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 20px;
+            background: white;
+            transition: transform 0.2s;
+        }
+        .product-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        .product-image {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            border-radius: 4px;
+        }
+        .product-title {
+            font-size: 18px;
+            margin: 15px 0 10px;
+            color: #333;
+        }
+        .product-price {
+            color: #2c3e50;
+            font-weight: bold;
+            font-size: 20px;
+        }
+        .btn {
+            display: inline-block;
+            padding: 8px 16px;
+            text-decoration: none;
+            border-radius: 4px;
+            font-size: 14px;
+            background: #007bff;
+            color: white;
+            margin-top: 10px;
+        }
+        .btn:hover { background: #0056b3; }
+        .no-products {
+            text-align: center;
+            padding: 40px;
+            color: #6c757d;
+            background: white;
+            border-radius: 10px;
+        }
+        .pagination {
+            margin-top: 40px;
+            text-align: center;
+        }
+        .pagination a, .pagination span {
+            display: inline-block;
+            padding: 8px 16px;
+            margin: 0 4px;
+            border: 1px solid #ddd;
+            text-decoration: none;
+            color: #007bff;
+            border-radius: 4px;
+        }
+        .pagination .current {
+            background: #007bff;
+            color: white;
+            border-color: #007bff;
+        }
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: #6c757d;
+            text-decoration: none;
+        }
+        .back-link:hover { color: #0056b3; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>{{ title }}</h1>
+            <div>
+                {% if user.is_authenticated %}
+                    <span>Привет, {{ user.email }}!</span>
+                    <a href="{% url 'profile' %}" style="margin-left: 15px;">Профиль</a>
+                    <a href="{% url 'logout' %}" style="margin-left: 15px;">Выйти</a>
+                {% else %}
+                    <a href="{% url 'login' %}">Вход</a> |
+                    <a href="{% url 'register' %}">Регистрация</a>
+                {% endif %}
+            </div>
+        </div>
+
+        <a href="{% url 'product_list' %}" class="back-link">← Все товары</a>
+
+        <!-- Меню категорий -->
+        <div class="categories-menu">
+            <strong>Категории:</strong>
+            <a href="{% url 'product_list' %}" class="{% if not category %}active{% endif %}">Все</a>
+            {% for cat in categories %}
+                <a href="{% url 'products_by_category' cat.id %}"
+                   class="{% if category and category.id == cat.id %}active{% endif %}">
+                    {{ cat.name }}
+                </a>
+            {% endfor %}
+        </div>
+
+        {% if products %}
+        <div class="product-grid">
+            {% for product in products %}
+            <div class="product-card">
+                {% if product.image %}
+                <img src="{{ product.image.url }}" alt="{{ product.name }}" class="product-image">
+                {% else %}
+                <div style="width: 100%; height: 200px; background: #f5f5f5; display: flex; align-items: center; justify-content: center; border-radius: 4px;">
+                    <span>Нет изображения</span>
+                </div>
+                {% endif %}
+
+                <h3 class="product-title">{{ product.name }}</h3>
+                <p class="product-price">{{ product.price }} руб.</p>
+                <p><small>Категория: {{ product.category.name|default:"Не указана" }}</small></p>
+
+                <a href="{% url 'product_detail' product.pk %}" class="btn">Подробнее</a>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Пагинация -->
+        {% if is_paginated %}
+        <div class="pagination">
+            {% if page_obj.has_previous %}
+            <a href="?page={{ page_obj.previous_page_number }}">← Назад</a>
+            {% endif %}
+
+            {% for num in page_obj.paginator.page_range %}
+                {% if page_obj.number == num %}
+                    <span class="current">{{ num }}</span>
+                {% else %}
+                    <a href="?page={{ num }}">{{ num }}</a>
+                {% endif %}
+            {% endfor %}
+
+            {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}">Вперед →</a>
+            {% endif %}
+        </div>
+        {% endif %}
+
+        {% else %}
+        <div class="no-products">
+            <h2>В этой категории пока нет товаров</h2>
+            <p>Загляните позже или выберите другую категорию</p>
+        </div>
+        {% endif %}
+    </div>
+</body>
+</html>

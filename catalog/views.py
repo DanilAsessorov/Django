@@ -3,8 +3,13 @@ from django.urls import reverse_lazy
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.core.exceptions import PermissionDenied
 from django.contrib import messages
+from django.views.decorators.cache import cache_page
+from django.utils.decorators import method_decorator
+from django.core.cache import cache
+from django.http import Http404
 from .models import Product, Category
 from .forms import ProductForm
+from .services import get_product_detail, get_products_by_category, clear_products_cache, clear_product_detail_cache
 
 
 # Главная страница и контакты
@@ -14,8 +19,16 @@ class HomeView(TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        # Дополнительные данные на главную
-        context['products'] = Product.objects.filter(is_published=True)[:5]
+        # Кеширование списка продуктов на главной
+        cache_key = 'home_products'
+        products = cache.get(cache_key)
+
+        if products is None:
+            products = list(Product.objects.filter(is_published=True)[:5])
+            cache.set(cache_key, products, timeout=300)  # 5 минут
+
+        context['products'] = products
+        context['categories'] = Category.objects.all()
         return context
 
 
@@ -24,12 +37,23 @@ class ContactsView(TemplateView):
     template_name = 'catalog/contacts.html'
 
 
-# Детальная страница продукта
+# Кеширование детальной страницы продукта (5 минут)
+@method_decorator(cache_page(300), name='dispatch')
 class ProductDetailView(DetailView):
-    """Контроллер для страницы детального просмотра товара"""
+    """Контроллер для страницы детального просмотра товара (с кешированием)"""
     model = Product
     template_name = 'catalog/product_detail.html'
     context_object_name = 'product'
+
+    def get_object(self, queryset=None):
+        # Используем сервисную функцию с кешированием
+        product_id = self.kwargs.get(self.pk_url_kwarg)
+        product = get_product_detail(product_id)
+
+        if product is None:
+            raise Http404("Продукт не найден")
+
+        return product
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -40,16 +64,63 @@ class ProductDetailView(DetailView):
         return context
 
 
-# CRUD операции для продуктов
+class ProductByCategoryView(ListView):
+    """Список продуктов в указанной категории (с кешированием)"""
+    model = Product
+    template_name = 'catalog/product_by_category.html'
+    context_object_name = 'products'
+    paginate_by = 10
+
+    def get_queryset(self):
+        category_id = self.kwargs.get('category_id')
+        # Используем сервисную функцию с кешированием
+        return get_products_by_category(category_id)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        category_id = self.kwargs.get('category_id')
+
+        # Получаем информацию о категории
+        try:
+            category = Category.objects.get(id=category_id)
+            context['category'] = category
+            context['title'] = f'Товары в категории: {category.name}'
+        except Category.DoesNotExist:
+            context['title'] = 'Все товары'
+
+        # Список всех категорий для навигации
+        context['categories'] = Category.objects.all()
+
+        return context
+
+
 class ProductListView(ListView):
-    """Список всех опубликованных продуктов"""
+    """Список всех опубликованных продуктов (с низкоуровневым кешированием)"""
     model = Product
     template_name = 'catalog/product_list.html'
     context_object_name = 'products'
     paginate_by = 10
 
     def get_queryset(self):
-        return Product.objects.filter(is_published=True).order_by('name')
+        # Пытаемся получить из кеша
+        cache_key = 'all_products_list'
+        products = cache.get(cache_key)
+
+        if products is None:
+            products = list(Product.objects.filter(
+                is_published=True
+            ).select_related('category', 'owner').order_by('name'))
+            cache.set(cache_key, products, timeout=600)  # 10 минут
+            print("[CACHE MISS] Список продуктов загружен из БД")
+        else:
+            print("[CACHE HIT] Список продуктов загружен из кеша")
+
+        return products
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['categories'] = Category.objects.all()
+        return context
 
 
 class ProductCreateView(LoginRequiredMixin, CreateView):
@@ -62,8 +133,15 @@ class ProductCreateView(LoginRequiredMixin, CreateView):
     def form_valid(self, form):
         """При создании автоматически назначаем владельца"""
         form.instance.owner = self.request.user
+        response = super().form_valid(form)
+
+        # Очищаем кеш
+        clear_products_cache()
+        cache.delete('all_products_list')
+        cache.delete('home_products')
+
         messages.success(self.request, 'Продукт успешно создан!')
-        return super().form_valid(form)
+        return response
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -89,8 +167,16 @@ class ProductUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
         raise PermissionDenied("У вас нет прав для редактирования этого продукта")
 
     def form_valid(self, form):
+        response = super().form_valid(form)
+
+        # Очищаем кеш
+        clear_products_cache(self.object.category_id)
+        cache.delete('all_products_list')
+        cache.delete('home_products')
+        clear_product_detail_cache(self.object.id)
+
         messages.success(self.request, 'Продукт успешно обновлен!')
-        return super().form_valid(form)
+        return response
 
     def get_success_url(self):
         return reverse_lazy('product_detail', kwargs={'pk': self.object.pk})
@@ -120,8 +206,19 @@ class ProductDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
         raise PermissionDenied("У вас нет прав для удаления этого продукта")
 
     def delete(self, request, *args, **kwargs):
+        product = self.get_object()
+        category_id = product.category_id
+        product_id = product.id
+        response = super().delete(request, *args, **kwargs)
+
+        # Очищаем кеш
+        clear_products_cache(category_id)
+        cache.delete('all_products_list')
+        cache.delete('home_products')
+        clear_product_detail_cache(product_id)
+
         messages.success(self.request, 'Продукт успешно удален!')
-        return super().delete(request, *args, **kwargs)
+        return response
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)

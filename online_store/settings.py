@@ -188,3 +188,41 @@ if not DEBUG:
     SECURE_BROWSER_XSS_FILTER = True
     SECURE_CONTENT_TYPE_NOSNIFF = True
     X_FRAME_OPTIONS = 'DENY'
+
+# ============================================
+# НАСТРОЙКИ REDIS И КЕШИРОВАНИЯ
+# ============================================
+
+# Включение кеширования
+CACHE_ENABLED = True
+
+# Настройки Redis (упрощенная версия)
+CACHES = {
+    'default': {
+        'BACKEND': 'django_redis.cache.RedisCache',
+        'LOCATION': 'redis://127.0.0.1:6379/1',  # 1 - номер базы данных Redis
+        'OPTIONS': {
+            'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+            'CONNECTION_POOL_CLASS': 'redis.BlockingConnectionPool',
+            'CONNECTION_POOL_CLASS_KWARGS': {
+                'max_connections': 50,
+                'timeout': 20,
+            },
+            'MAX_CONNECTIONS': 1000,
+            'IGNORE_EXCEPTIONS': True,  # Игнорировать ошибки Redis
+        },
+        'KEY_PREFIX': 'online_store',  # Префикс для всех ключей
+        'TIMEOUT': 300,  # 5 минут по умолчанию
+    }
+}
+
+# Для отладки (добавить в MIDDLEWARE, если нужно кеширование всего сайта)
+if DEBUG:
+    MIDDLEWARE += [
+        'django.middleware.cache.UpdateCacheMiddleware',
+        'django.middleware.cache.FetchFromCacheMiddleware'
+    ]
+
+# Настройки для кеширования сессий (опционально)
+SESSION_ENGINE = 'django.contrib.sessions.backends.cache'
+SESSION_CACHE_ALIAS = 'default'
